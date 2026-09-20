@@ -1,0 +1,1 @@
+# The tool uses only the Python standard library (string, getpass, argparse).
