@@ -11,6 +11,9 @@ suggestions.
 - Hidden input mode (no echo) when reading from a terminal.
 - Optionally exits non-zero when a minimum score is required (`--require-score`).
 - Pure Python standard library — no runtime dependencies.
+- Common/breached-password guard: well-known weak passwords (e.g. `Password1`,
+  `Admin123`, `qwerty123`) can never score Moderate or Strong and always fail
+  any `--require-score 50+` gate.
 
 ## Install
 
@@ -46,6 +49,14 @@ echo $?   # 1 when the score is below the requirement
 | **Total**                 |  **100** |
 
 A missing criterion produces a matching suggestion.
+
+## Common-password guard
+
+If the stripped, lowercased password matches the compiled-in list of
+common/breached passwords, its score is capped below the Moderate threshold
+(50) and a dedicated suggestion is printed instead — regardless of how many
+character classes it happens to contain. The guard is a curated list of the
+worst offenders, not a full breach corpus.
 
 ## Development
 

@@ -15,6 +15,66 @@ _POINTS_LOWERCASE = 15
 _POINTS_DIGIT = 15
 _POINTS_SYMBOL = 15
 
+# Common, breached, or trivially guessable passwords that a character-class
+# score would otherwise rate too generously. Not a full breach corpus: it is a
+# compiled-in guard list of the worst offenders. Matched case-insensitively on
+# the stripped password, so "Admin123", "ADMIN123" and "admin123" all hit it.
+COMMON_PASSWORDS: frozenset[str] = frozenset(
+    {
+        "password",
+        "password1",
+        "password123",
+        "password1234",
+        "password!",
+        "12345678",
+        "123456789",
+        "1234567890",
+        "qwertyui",
+        "qwerty123",
+        "admin",
+        "admin123",
+        "admin1234",
+        "administrator",
+        "root",
+        "root123",
+        "iloveyou",
+        "iloveyou1",
+        "iloveyou!",
+        "letmein",
+        "welcome",
+        "welcome1",
+        "monkey",
+        "monkey123",
+        "dragon",
+        "baseball",
+        "football",
+        "shadow",
+        "master",
+        "superman",
+        "trustno1",
+        "mustang",
+        "princess",
+        "sunshine",
+        "charlie",
+        "starwars",
+        "whatever",
+        "access14",
+        "hello123",
+        "abcd1234",
+        "asdfghjk",
+        "1q2w3e4r",
+        "qweasdzxc",
+        "zaq12wsx",
+        "passw0rd",
+        "p@ssw0rd",
+        "pa55word",
+        "letmein1",
+        "lovely",
+        "freedom",
+        "nirvana",
+    }
+)
+
 
 @dataclass(frozen=True)
 class Criterion:
@@ -46,6 +106,11 @@ class PasswordStrength:
         return "Weak"
 
 
+def is_common_password(password: str) -> bool:
+    """Return True when ``password`` is on the compiled-in common-password list."""
+    return password.strip().lower() in COMMON_PASSWORDS
+
+
 def check_password(password: str) -> PasswordStrength:
     """Score ``password`` against six criteria and list actionable suggestions."""
     length = len(password)
@@ -67,8 +132,18 @@ def check_password(password: str) -> PasswordStrength:
         Criterion("symbol", has_symbol, _POINTS_SYMBOL),
     )
 
-    suggestions = _build_suggestions(length, has_uppercase, has_lowercase, has_digit, has_symbol)
-    return PasswordStrength(criteria, sum(criterion.score for criterion in criteria), suggestions)
+    common = is_common_password(password)
+    # Cap the score below WEAK_SCORE so a common password can never be labeled
+    # Moderate/Strong and can never pass a --require-score >= 50 gate.
+    score = (
+        min(sum(criterion.score for criterion in criteria), WEAK_SCORE - 1)
+        if common
+        else sum(criterion.score for criterion in criteria)
+    )
+    suggestions = _build_suggestions(
+        length, has_uppercase, has_lowercase, has_digit, has_symbol, common
+    )
+    return PasswordStrength(criteria, score, suggestions)
 
 
 def _build_suggestions(
@@ -77,8 +152,13 @@ def _build_suggestions(
     has_lowercase: bool,
     has_digit: bool,
     has_symbol: bool,
+    common: bool = False,
 ) -> tuple[str, ...]:
     suggestions: list[str] = []
+    if common:
+        suggestions.append(
+            "This is a commonly used password that is easily guessed; choose a unique one."
+        )
     if length < MIN_LENGTH:
         suggestions.append(f"Use at least {MIN_LENGTH} characters.")
     if length < RECOMMENDED_LENGTH:
@@ -95,6 +175,7 @@ def _build_suggestions(
 
 
 __all__ = [
+    "COMMON_PASSWORDS",
     "MIN_LENGTH",
     "RECOMMENDED_LENGTH",
     "STRONG_SCORE",
@@ -102,4 +183,5 @@ __all__ = [
     "Criterion",
     "PasswordStrength",
     "check_password",
+    "is_common_password",
 ]

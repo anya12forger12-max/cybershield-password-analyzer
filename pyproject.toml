@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cybershield-password-analyzer"
-version = "0.1.0"
+version = "0.2.0"
 description = "Password Strength Checker - Checks length, uppercase, lowercase, numbers, symbols. Calculates strength score with improvement suggestions."
 readme = "README.md"
 license = {text = "GPL-3.0-only"}

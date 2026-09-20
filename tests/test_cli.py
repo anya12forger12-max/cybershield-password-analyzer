@@ -46,3 +46,11 @@ def test_require_score_out_of_range():
     with pytest.raises(SystemExit) as exc:
         main([FULL_SAMPLE, "--require-score", "150"])
     assert exc.value.code == 2
+
+
+def test_common_password_scores_weak_and_gate_fails(capsys):
+    rc = main(["Password1", "--require-score", "50"])
+    capture = capsys.readouterr()
+    assert rc == 1
+    assert "(Weak)" in capture.out
+    assert "commonly used password" in capture.out
