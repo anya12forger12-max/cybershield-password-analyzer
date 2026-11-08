@@ -68,3 +68,12 @@ isort --check-only src/ tests/
 mypy src/
 pytest
 ```
+---
+
+## Repository
+
+- **Home:** https://github.com/anya12forger12-max/cybershield-password-analyzer
+- **License:** MIT (see `LICENSE`)
+- **Issues:** https://github.com/anya12forger12-max/cybershield-password-analyzer/issues
+- **Security:** See `SECURITY.md` / `.github/SECURITY.md`
+- **Contributing:** See `CONTRIBUTING.md` (or open an issue/PR)
